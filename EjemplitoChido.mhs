@@ -1,0 +1,38 @@
+#t
+#f
+
+0
+1
+2
+123
+8745728
+9034
+0001
+01
+
+a
+hola
+mundo
+variable1
+variable2
+var1de2n
+
+(1 + 2)
+(hola - #t)
+(1 - 1 hola)
+((var1de2 - 1) - #t)
+(1 * 1)
+(1 / 2)
+(1 / (1 - 1))
+(#t and #t)
+(1 and #f)
+(hola or 1 1 1)
+
+(if #t 1 (1 -))
+myif
+if2
+
+(fun ([x Int]) => x)
+(fun () => 1)
+(fun ([x Bool] [y Func Bool Bool]) => (if y x (1 -)))
+
