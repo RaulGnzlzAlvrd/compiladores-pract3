@@ -47,154 +47,121 @@ Lexer y parser
    ;; EMPIEZA relacionado a let
    [(:: #\l #\e #\t)
     ; =>
-    (cons (token-LET)
-          (minHS-lexer input-port))]
+    (token-LET)]
    [#\=
     ; =>
-    (cons (token-ASSIGN)
-          (minHS-lexer input-port))]
+    (token-ASSIGN)]
    [(:: #\i #\n)
     ; =>
-    (cons (token-IN)
-          (minHS-lexer input-port))]
+    (token-IN)]
    [(:: #\e #\n #\d)
     ; =>
-    (cons (token-END)
-          (minHS-lexer input-port))]
+    (token-END)]
    ;; TERMINA relacionado a let
    
 
    ;; EMPIEZA relacionado al if
    [(:: #\i #\f)
     ; =>
-    (cons (token-IF)
-          (minHS-lexer input-port))]
+    (token-IF)]
    [(:: #\t #\h #\e #\n)
     ; =>
-    (cons (token-THEN)
-          (minHS-lexer input-port))]
+    (token-THEN)]
    [(:: #\e #\l #\s #\e)
     ; =>
-    (cons (token-ELSE)
-          (minHS-lexer input-port))]
+    (token-ELSE)]
    ;; TERMINA relacionado al if
 
    
    ;; EMPIEZA relacionado a tipos
    [#\:
     ; =>
-    (cons (token-TYPEOF)
-          (minHS-lexer input-port))]
+    (token-TYPEOF)]
    [(:: #\B #\o #\o #\l)
     ; =>
-    (cons (token-BOOLE)
-          (minHS-lexer input-port))]
+    (token-BOOLE)]
    [(:: #\I #\n #\t)
     ; =>
-    (cons (token-INT)
-          (minHS-lexer input-port))]
+    (token-INT)]
    [(:: #\F #\u #\n #\c)
     ; =>
-    (cons (token-FUNC)
-          (minHS-lexer input-port))]
+    (token-FUNC)]
    ;; TERMINA relacionado a tipos
 
 
    ;; EMPIEZA relacionado a funciones
    [(:: #\f #\u #\n)
     ; =>
-    (cons (token-FUN)
-          (minHS-lexer input-port))]
+    (token-FUN)]
    [(:: #\f #\u #\n #\F)
     ; =>
-    (cons (token-FUNF)
-          (minHS-lexer input-port))]
+    (token-FUNF)]
    [(:: #\= #\>)
     ; =>
-    (cons (token-ARROW)
-          (minHS-lexer input-port))]
+    (token-ARROW)]
    [(:: #\a #\p #\p)
     ; =>
-    (cons (token-APP)
-          (minHS-lexer input-port))] 
+    (token-APP)] 
    ;; TERMINA relacionado a funciones
 
 
    ;; EMPIEZA operadores prim
    [#\+
     ; =>
-    (cons (token-+)
-          (minHS-lexer input-port))]
+    (token-+)]
    [#\-
     ; =>
-    (cons (token--)
-          (minHS-lexer input-port))]
+    (token--)]
    [#\*
     ; =>
-    (cons (token-*)
-          (minHS-lexer input-port))]
+    (token-*)]
    [#\/
     ; =>
-    (cons (token-/)
-          (minHS-lexer input-port))]
-
-    [(:: #\a #\n #\d)
+    (token-/)]
+   [(:: #\a #\n #\d)
     ; =>
-    (cons (token-AND)
-          (minHS-lexer input-port))]
+    (token-AND)]
    [(:: #\o #\r)
     ; =>
-    (cons (token-OR)
-          (minHS-lexer input-port))]
+    (token-OR)]
    ;; TERMINA operadores prim
    
    
    ;; EMPIEZA constantes
    [(:+ (char-range #\0 #\9))
     ; =>
-    (cons (token-NUM (string->number lexeme))
-          (minHS-lexer input-port))]
+    (token-NUM (string->number lexeme))]
    [(:: #\# (:or #\t #\f))
     ; =>
-    (cons (token-BOOL (equal? lexeme "#t"))
-          (minHS-lexer input-port))]
+    (token-BOOL (equal? lexeme "#t"))]
    ;; TERMINA constantes
 
 
    ;; Variables
    [(:+ (:: (char-range #\a #\z) (:? (char-range #\0 #\9))))
     ; =>
-    (cons (token-VAR (string->symbol lexeme))
-          (minHS-lexer input-port))]
+    (token-VAR (string->symbol lexeme))]
 
    
    ;; EMPIEZA parentesis y brackets
    [#\(
     ;=>
-    (cons (token-LP)
-          (minHS-lexer input-port))]
+    (token-LP)]
    [#\)
     ;=>
-    (cons (token-RP)
-          (minHS-lexer input-port))]
-
+    (token-RP)]
    [#\{
     ;=>
-    (cons (token-LB)
-          (minHS-lexer input-port))]
+    (token-LB)]
    [#\}
     ;=>
-    (cons (token-RB)
-          (minHS-lexer input-port))]
-   
+    (token-RB)]
    [#\[
     ;=>
-    (cons (token-LSB)
-          (minHS-lexer input-port))]
+    (token-LSB)]
    [#\]
     ;=>
-    (cons (token-RSB)
-          (minHS-lexer input-port))]
+    (token-RSB)]
    ;; TERMINA parentesis y brackets
 
 
@@ -203,7 +170,7 @@ Lexer y parser
     ; =>
     (minHS-lexer input-port)] ; borramos todos los posibles espacios en blanco, tabuladores, etc
    [(eof) ; Token que indica que se termino de lexear la cadena
-    (list (token-EOF))]))
+    (token-EOF)]))
 
 ; Empecemos a definir la gramatica de minHS
 ; data minHS = NUM Int | ... | ADD minHS minHS | ...
