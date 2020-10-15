@@ -17,22 +17,33 @@ variable1
 variable2
 var1de2n
 
-(1 + 2)
-(hola - #t)
-(1 - 1 hola)
-((var1de2 - 1) - #t)
-(1 * 1)
-(1 / 2)
-(1 / (1 - 1))
-(#t and #t)
-(1 and #f)
-(hola or 1 1 1)
+1 + 2
+hola - #t
+1 - 1 + hol
+var1de2 - 1 - #t
+1 * 1
+1 / 2
+1 / 1 - 1
+#t and #t
+1 and #f
+hola or 1 + 1 / 1
 
-(if #t 1 (1 -))
+if (#t and #t) then {hola} else {adios}
+if (#f) then {hola} else {adios}
 myif
 if2
 
-(fun ([x Int]) => x)
-(fun () => 1)
-(fun ([x Bool] [y Func Bool Bool]) => (if y x (1 -)))
+fun ([x:Int]:Int) => x
+fun (:Int) => 1
+fun ([x:Bool] [y:Func Bool Bool]:Func Bool Bool) => if (#t and #t) then {hola} else {adios}
+
+funF (f1 [x:Int]:Int) => x
+funF (f:Int) => 1
+funF (f2[x:Bool] [y:Func Bool Bool]:Func Bool Bool) => if (#t and #t) then {hola} else {adios}
+
+let ([x:Int = (1 * 2)]) in x end
+let () in 1 end
+let ([x:Bool = #t] [y:Func Bool Bool = fun ([x:Bool]:Bool) => x]) in if (#t and #t) then {hola} else {adios} end
+
+fun ([x:Int]:Int) => x app (0)
 
