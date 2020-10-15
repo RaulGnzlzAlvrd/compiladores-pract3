@@ -182,7 +182,9 @@ Lexer y parser
 (define-struct var-exp (i) #:transparent)
 ; e :: = num | x | bool | opu(e) | opb(e,e) | fun [(x:T)]* e | ...
 
-; Experimentos bonitos y romanticos
+;; Experimentos bonitos y romanticos
+;; Casi todos los ejemplos chidos están en este archivo
+;; Para que salga más bonito se puede revertir a al commit e4f6d20
 (let* ([input (open-input-file "EjemplitoChido.mhs")]
        [tokens (minHS-lexer input)])
   (begin
