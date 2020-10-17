@@ -20,7 +20,7 @@ Lexer y parser
                       
 ;; Tokens que no almacenan datos
 (define-empty-tokens b (+ - * / AND OR          ;; prim
-                          LP RP LSB RSB LB RB   ;; parentesis (), brackets {} y square brackets []
+                          LP RP LB RB LK RK   ;; parentesis (), brackets {} y square brackets []
                           IF THEN ELSE          ;; condicional
                           BOOLE INT FUNC        ;; Types 
                           FUN FUNF TYPEOF ARROW ;; Funciones
@@ -128,7 +128,7 @@ Lexer y parser
    
    
    ;; EMPIEZA constantes
-   [(:+ (char-range #\0 #\9))
+   [(:: (:? (:+ #\- #\+)) (:+ (char-range #\0 #\9)))
     ; =>
     (token-NUM (string->number lexeme))]
    [(:: #\# (:or #\t #\f))
@@ -152,16 +152,16 @@ Lexer y parser
     (token-RP)]
    [#\{
     ;=>
-    (token-LB)]
+    (token-LK)]
    [#\}
     ;=>
-    (token-RB)]
+    (token-RK)]
    [#\[
     ;=>
-    (token-LSB)]
+    (token-LB)]
    [#\]
     ;=>
-    (token-RSB)]
+    (token-RB)]
    ;; TERMINA parentesis y brackets
 
 
