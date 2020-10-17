@@ -1,0 +1,10 @@
+# Compiladores
+## Práctica 02 pt-1
+## Lexer
+
+### Datos
+Nombre: González Alvarado Raúl
+No. cuenta: 313245312
+
+### Detalles
+En el archivo `EjemplitoChido.mhs` vienen varios ejemplos que fueron usados para testear la práctica.
