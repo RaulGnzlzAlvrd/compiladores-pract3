@@ -13,6 +13,7 @@ Lexer y parser
          (prefix-in : parser-tools/lex-sre)
          (prefix-in re- parser-tools/lex-sre)
          parser-tools/yacc)
+(provide (all-defined-out))
 
 ;; Tokens que son contenedores --- data Tokens = NUM Int | VAR String | BOOL Bool
 (define-tokens a (NUM BOOL  ;; Constants
@@ -174,27 +175,27 @@ Lexer y parser
 
 ; Empecemos a definir la gramatica de minHS
 ; data minHS = NUM Int | ... | ADD minHS minHS | ...
-(define-struct let-exp (var e1 e2) #:transparent) ; let(e1,x.e2) --- let x = e1 in e2 end
-(define-struct bin-exp (op e1 e2) #:transparent) ; opb(e,e)
-(define-struct un-exp (op e1) #:transparent) ; opu(e)
-(define-struct par-exp (exp) #:transparent) ; (e)
-(define-struct num-exp (n) #:transparent)
-(define-struct var-exp (i) #:transparent)
+;;(define-struct let-exp (var e1 e2) #:transparent) ; let(e1,x.e2) --- let x = e1 in e2 end
+;;(define-struct bin-exp (op e1 e2) #:transparent) ; opb(e,e)
+;;(define-struct un-exp (op e1) #:transparent) ; opu(e)
+;;(define-struct par-exp (exp) #:transparent) ; (e)
+;;(define-struct num-exp (n) #:transparent)
+;;(define-struct var-exp (i) #:transparent)
 ; e :: = num | x | bool | opu(e) | opb(e,e) | fun [(x:T)]* e | ...
 
 ;; Experimentos bonitos y romanticos
 ;; Casi todos los ejemplos chidos están en este archivo
 ;; Para que salga más bonito se puede revertir a al commit e4f6d20
-(let* ([input (open-input-file "EjemplitoChido.mhs")]
-       [tokens (minHS-lexer input)])
-  (begin
-    (close-input-port input)
-    tokens))
+;;(let* ([input (open-input-file "EjemplitoChido.mhs")]
+;;       [tokens (minHS-lexer input)])
+;;  (begin
+;;    (close-input-port input)
+;;    tokens))
 
-(let ([input (open-input-string "(3 - 33 + 6)")])
-  (minHS-lexer input))
+;;(let ([input (open-input-string "(3 - 33 + 6)")])
+;;  (minHS-lexer input))
 
-(let ([input (open-input-string "fun ([x:Bool][y:Func Bool Bool]:Bool) => if (#t and #t) then {hola} else {adios}")])
-  (minHS-lexer input))
+;;(let ([input (open-input-string "fun ([x:Bool][y:Func Bool Bool]:Bool) => if (#t and #t) then {hola} else {adios}")])
+;;  (minHS-lexer input))
 
 ; Proximamente un parser
