@@ -16,23 +16,35 @@ Lexer y parser
          parser-tools/lex)
 
 ;; An abstraction of the grammar minHS.
-(define-struct var-exp (i) #:transparent) ; For the variables.
+;; Constants
 (define-struct num-exp (n) #:transparent) ; For the numbers.
 (define-struct bool-exp (b) #:transparent) ; For the booleans.
 
-(define-struct typeof-exp (v e) #:transparent) ; For the type of operator ":".
-(define-struct typeof-f-exp (f t e) #:transparent) ; For the name and the parameters of the function (f), the returning type (t) and the body (e).
+;; Variables
+(define-struct var-exp (i) #:transparent) ; For the variables.
+
+;; Operadores prim
+(define-struct prim-exp (op e1 e2) #:transparent) ; For the arithmetic operations.
+
+;; Parentesis y brackets
+(define-struct par-exp (exp) #:transparent) ; For the parenthesis.
+(define-struct key-exp (exp) #:transparent) ; For the keys.
+(define-struct brack-exp (exp) #:transparent) ; For the brackets.
+
+;; if-then-else
+(define-struct if-then-exp (g e1 e2) #:transparent) ; For the if conditionals.
+
+;; Tipos
 (define-struct int-exp () #:transparent) ; For the Int type.
 (define-struct boole-exp () #:transparent) ; For the Bool type.
 ; Note: There is a difference: bool is for values and boole is for type
+(define-struct typeof-f-exp (f t e) #:transparent) ; For the name and the parameters of the function (f), the returning type (t) and the body (e).
+(define-struct typeof-exp (v e) #:transparent) ; For the type of operator ":".
 
+;; funciones
+(define-struct fun-exp (sign body) #:transparent) ;; For functions: fun (sign) => body
 
-(define-struct prim-exp (op e1 e2) #:transparent) ; For the arithmetic operations.
-(define-struct if-then-exp (g e1 e2) #:transparent) ; For the if conditionals.
-
-(define-struct par-exp (exp) #:transparent) ; For the parenthesis.
-(define-struct key-exp (exp) #:transparent) ; For the keys.
-
+;; START parser
 (define minHS-parser
   (parser
    (start exp) ; start clause. The exp is the initial symbol where the parser begins the analysis. 
@@ -42,24 +54,34 @@ Lexer y parser
    (precs (left - +) ; precs clause. Here we can give some precedence of our language operators.
           (left * /))
    (grammar ; grammar clause. Here goes the grammar of minHS.
-    (exp ((NUM) (num-exp $1)) ;; ((Token) (constructor $1 $2 ... $n)) [1,2,3,...,n]
-         ((BOOLE) (bool-exp $1)) 
-         ((VAR) (var-exp $1))
+    (exp
+     [(NUM) (num-exp $1)] ;; ((Token) (constructor $1 $2 ... $n)) [1,2,3,...,n]
+     [(BOOL) (bool-exp $1)] 
+     [(VAR) (var-exp $1)]
 
-         ((exp + exp) (make-prim-exp + $1 $3)) ; ((e1 e2 e3 .... en) (constructor $1 $2 $3 ... $n))
-         ((exp - exp) (make-prim-exp - $1 $3))
-         ((exp * exp) (make-prim-exp * $1 $3))
-         ((exp / exp) (make-prim-exp / $1 $3))
+     [(exp + exp) (make-prim-exp + $1 $3)] ; ((e1 e2 e3 .... en) (constructor $1 $2 $3 ... $n))
+     [(exp - exp) (make-prim-exp - $1 $3)]
+     [(exp * exp) (make-prim-exp * $1 $3)]
+     [(exp / exp) (make-prim-exp / $1 $3)]
 
-         ((IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-exp $3 $7 $11))
+     [(IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-exp $3 $7 $11)]
 
-         ((LP exp RP) (make-par-exp $2)))
-    )))
+     [(INT) (int-exp)]
+     [(BOOLE) (boole-exp)]
+     [(exp TYPEOF exp) (make-typeof-exp $1 $3)]
+     
+     [(LP exp RP) (make-par-exp $2)]
+     [(LB exp RB) (make-brack-exp $2)]
+
+     [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]))))
 
 ; A function that stores our lexer into a lambda function without arguments.
 (define (lex-this lexer input) (lambda () (lexer input)))
 
-; A lot of examples.
+;;
+;; A lot of examples.
+;;
+
 (display "Example 1: 3 - (3 / 6)\n")
 (let ((input (open-input-string "3 - (3 / 6)")))
   (minHS-parser (lex-this minHS-lexer input)))
