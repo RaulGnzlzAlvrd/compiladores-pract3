@@ -37,12 +37,15 @@ Lexer y parser
 ;; Tipos
 (define-struct int-exp () #:transparent) ; For the Int type.
 (define-struct boole-exp () #:transparent) ; For the Bool type.
+(define-struct func-exp (t1 t2) #:transparent) ;; Fun Func type
 ; Note: There is a difference: bool is for values and boole is for type
 (define-struct typeof-f-exp (f t e) #:transparent) ; For the name and the parameters of the function (f), the returning type (t) and the body (e).
 (define-struct typeof-exp (v e) #:transparent) ; For the type of operator ":".
 
 ;; funciones
 (define-struct fun-exp (sign body) #:transparent) ;; For functions: fun (sign) => body
+
+(define-struct app-exp (e1 e2) #:transparent) ;; For function application: e1 app e2
 
 ;; START parser
 (define minHS-parser
@@ -68,12 +71,16 @@ Lexer y parser
 
      [(INT) (int-exp)]
      [(BOOLE) (boole-exp)]
+     [(FUNC exp exp) (make-func-exp $2 $3)]
      [(exp TYPEOF exp) (make-typeof-exp $1 $3)]
      
      [(LP exp RP) (make-par-exp $2)]
      [(LB exp RB) (make-brack-exp $2)]
 
-     [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]))))
+     [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]
+     [(exp APP exp) (make-app-exp $1 $3)]
+   
+     ))))
 
 ; A function that stores our lexer into a lambda function without arguments.
 (define (lex-this lexer input) (lambda () (lexer input)))
