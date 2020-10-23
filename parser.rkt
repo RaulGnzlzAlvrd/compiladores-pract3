@@ -45,6 +45,9 @@ Lexer y parser
 ;; funciones
 (define-struct fun-exp (sign body) #:transparent) ;; For functions: fun (sign) => body
 
+(define-struct let-exp (l body) #:transparent) ;; For let expresion: let (l) in body end
+(define-struct assign-exp (var value) #:transparent) ;; For assign expression in let: var = value
+
 (define-struct app-exp (e1 e2) #:transparent) ;; For function application: e1 app e2
 
 ;; START parser
@@ -54,7 +57,9 @@ Lexer y parser
    (end EOF) ; end clause. The parser ends when it reads the given symbol. In our case, EOF.
    (error void) ; error clause. Here can be some errors presented in the anlysis.
    (tokens a b) ; tokens clause. Here goes our tokens. In our case, we defined the tokens in the lexer script.
-   (precs (left - +) ; precs clause. Here we can give some precedence of our language operators.
+   (precs (left ASSIGN)
+          (left TYPEOF)
+          (left - +) ; precs clause. Here we can give some precedence of our language operators.
           (left * /))
    (grammar ; grammar clause. Here goes the grammar of minHS.
     (exp
@@ -76,10 +81,13 @@ Lexer y parser
      
      [(LP exp RP) (make-par-exp $2)]
      [(LB exp RB) (make-brack-exp $2)]
+     [(exp ASSIGN exp) (make-assign-exp $1 $3)]
 
      [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]
      [(exp APP exp) (make-app-exp $1 $3)]
-   
+
+
+     [(LET LP exp RP IN exp END) (make-let-exp $3 $6)]
      ))))
 
 ; A function that stores our lexer into a lambda function without arguments.
@@ -147,6 +155,16 @@ Desired response:
 Desired response:
 (let-exp
  (brack-exp (app-t-exp (assign-exp (typeof-exp (var-exp 'x) (int-exp)) (num-exp 1)) (assign-exp (typeof-exp (var-exp 'y) (int-exp)) (num-exp 2))))
+ (prim-exp #<procedure:+> (var-exp 'x) (var-exp 'y)))
+|#
+
+(display "\nExample 7.1: let ([x:Int = 1 + 1]) in x+y end\n")
+(let ((input (open-input-string "let ([x:Int = 1 + 1]) in x+y end")))
+  (minHS-parser (lex-this minHS-lexer input)))
+#|
+Desired response:
+(let-exp
+ (brack-exp (assign-exp (typeof-exp (var-exp 'x) (int-exp)) (prim-exp #<procedure:+> (num-exp 1) (num-exp 1))))
  (prim-exp #<procedure:+> (var-exp 'x) (var-exp 'y)))
 |#
 
