@@ -22,9 +22,10 @@ Lexer y parser
 ;; Tokens que no almacenan datos
 (define-empty-tokens b (+ - * / AND OR          ;; prim
                           LP RP LB RB LK RK     ;; parentesis (P), square brackets [B] y brackets {K}
+                          APPT                  ;; Multiple parameters on functions/let
                           IF THEN ELSE          ;; condicional
                           BOOLE INT FUNC        ;; Types 
-                          FUN FUNF TYPEOF ARROW ;; Funciones
+                          FUN FUNF TYPEOF ARROW ;; Funciones                 
                           LET ASSIGN IN END     ;; Let
                           APP                   ;; Aplicacion de funcion
                           EOF))                 ;; End of line
@@ -107,6 +108,9 @@ Lexer y parser
 
 
    ;; EMPIEZA operadores prim
+   [(:: #\] #\[)
+    ; =>
+    (token-APPT)]
    [#\+
     ; =>
     (token-+)]
