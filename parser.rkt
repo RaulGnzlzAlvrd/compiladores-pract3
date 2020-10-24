@@ -58,6 +58,11 @@ Lexer y parser
 ;; function application
 (define-struct app-exp (e1 e2) #:transparent) ;; For function application: e1 app e2
 
+;; Side effects for errors on parser
+(define parse-fun-error
+  (lambda (tok-ok? tok-name tok-value)
+    (print (string-append "Token inesperado: " (symbol->string tok-name)))))
+
 ;;
 ;; START parser
 ;;
@@ -65,7 +70,7 @@ Lexer y parser
   (parser
    (start exp)  ; start clause. The exp is the initial symbol where the parser begins the analysis. 
    (end EOF)    ; end clause. The parser ends when it reads the given symbol. In our case, EOF.
-   (error void) ; error clause. Here can be some errors presented in the anlysis.
+   (error parse-fun-error) ; error clause. Here can be some errors presented in the anlysis.
    (tokens a b) ; tokens clause. Here goes our tokens. In our case, we defined the tokens in the lexer script.
    (precs
     (left APPT) ; precs clause. Here we can give some precedence of our language operators.

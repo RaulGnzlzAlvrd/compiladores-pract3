@@ -138,3 +138,7 @@ Desired response:
    (num-exp 2)))
  (num-exp 4))
 |#
+
+(display "Example 1: 3 - (3 / 6)\n")
+(let ((input (open-input-string " (2 + 3))")))
+  (minHS-parser (lex-this minHS-lexer input)))
