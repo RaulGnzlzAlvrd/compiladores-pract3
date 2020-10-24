@@ -44,6 +44,7 @@ Lexer y parser
 
 ;; funciones
 (define-struct fun-exp (sign body) #:transparent) ;; For functions: fun (sign) => body
+(define-struct fun-f-exp (name sign body) #:transparent) ;; For functions: fun (name sign) => body
 
 (define-struct let-exp (l body) #:transparent) ;; For let expresion: let (l) in body end
 (define-struct assign-exp (var value) #:transparent) ;; For assign expression in let: var = value
@@ -78,14 +79,15 @@ Lexer y parser
      [(BOOLE) (boole-exp)]
      [(FUNC exp exp) (make-func-exp $2 $3)]
      [(exp TYPEOF exp) (make-typeof-exp $1 $3)]
+     [(LP exp RP TYPEOF exp) (make-typeof-exp $2 $5)]
      
      [(LP exp RP) (make-par-exp $2)]
      [(LB exp RB) (make-brack-exp $2)]
      [(exp ASSIGN exp) (make-assign-exp $1 $3)]
 
      [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]
+     [(FUNF LP exp exp RP ARROW exp) (make-fun-f-exp $3 $4 $7)]
      [(exp APP exp) (make-app-exp $1 $3)]
-
 
      [(LET LP exp RP IN exp END) (make-let-exp $3 $6)]
      ))))
@@ -140,12 +142,14 @@ Desired response:
 (display "\nExample 6: funF (sumita ([x:Int][y:Int]):Int) => x+y\n")
 (let ((input (open-input-string "funF (sumita ([x:Int][y:Int]):Int) => x+y")))
   (minHS-parser (lex-this minHS-lexer input)))
+
 #|
 Desired response:
-(fun-f-exp
- (typeof-exp (var-exp 'sumita) (brack-exp (app-t-exp (typeof-exp (var-exp 'x) (int-exp)) (typeof-exp (var-exp 'y) (int-exp)))))
- (int-exp)
- (prim-exp #<procedure:+> (var-exp 'x) (var-exp 'y)))
+(fun-f-exp (typeof-exp (var-exp 'sumita)
+                       (brack-exp (app-t-exp (typeof-exp (var-exp 'x) (int-exp))
+                                             (typeof-exp (var-exp 'y) (int-exp)))))
+           (int-exp)
+           (prim-exp #<procedure:+> (var-exp 'x) (var-exp 'y)))
 |#
 
 (display "\nExample 7: let ([x:Int = 1][y:Int = 2]) in x+y end\n")
