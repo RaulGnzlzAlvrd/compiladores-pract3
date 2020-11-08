@@ -138,16 +138,32 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
       null
       (cons (get-varname (first vars) ctx) (renames (rest vars) ctx))))
 
+(define-language LBruijn
+  (extends LF)
+  (Expr (e body)
+        (+ (fun body* ... body))
+        (+ (funf x body* ... body))
+        (- (fun ((x* t*) ...) t body* ... body))
+        (- (funF x ((x* t*) ...) t body* ... body))))
+
+(define-parser parse-bruijn LBruijn)
+
+(define (fun-bruijn types)
+  (if (empty? types)
+      'fun
+      'fun
+      ))
+      ;(parse-bruijn (string->symbol (string-append "fun " (symbol->string (parse-bruijn (fun-bruijn (- times 1) e1* e2))))))))
+      ;(parse-bruijn `(fun t e1* ... e2))))
+
 ; Ej 4
-(define-pass rename-var : LF (ir) -> LF ()
+(define-pass rename-var : LF (ir) -> LBruijn ()
   (Expr : Expr (ir [ctx* null]) -> Expr ()
     [,x (get-varname x ctx*)]
     [(fun ([,x* ,t*] ...) ,t ,[Expr : body* (update-ctx x* ctx*) -> e1*] ... ,[Expr : body (update-ctx x* ctx*) -> e2])
-     `(fun ([,(renames x* (update-ctx x* ctx*)) ,t*] ...) ,t ,e1* ... ,e2)]
+     `(fun ,(fun-bruijn (rest t*)) ,e1* ... ,e2)]
+     ;(fun-bruijn (length x*) t e1* e2)]
     ))
-        ; let (x*:t* <- e*) in body* body end -- body* es lista (posiblemente vacia) de expresiones
-        ;[(let ([,x* ,t* ,[e*]] ...) ,[body*] ... ,[body])
-          ; `(let ([,(print x*) ,t* ,e*] ...) ,body* ... ,body)]))
 
 ; Tests Ej 4
 ; fun ([x:Int]:Int) => x
