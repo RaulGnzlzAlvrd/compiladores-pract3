@@ -142,17 +142,16 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
   (extends LF)
   (Expr (e body)
         (+ (fun body* ... body))
-        (+ (funf x body* ... body))
+        (+ (funF x body* ... body))
         (- (fun ((x* t*) ...) t body* ... body))
         (- (funF x ((x* t*) ...) t body* ... body))))
 
 (define-parser parse-bruijn LBruijn)
 
 (define (fun-bruijn types)
-  (if (empty? types)
+  (if (<= (length types) 1)
       'fun
-      'fun
-      ))
+      (string->symbol (string-append "fun " (symbol->string (fun-bruijn (rest types)))))))
       ;(parse-bruijn (string->symbol (string-append "fun " (symbol->string (parse-bruijn (fun-bruijn (- times 1) e1* e2))))))))
       ;(parse-bruijn `(fun t e1* ... e2))))
 
@@ -162,21 +161,22 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     [,x (get-varname x ctx*)]
     [(fun ([,x* ,t*] ...) ,t ,[Expr : body* (update-ctx x* ctx*) -> e1*] ... ,[Expr : body (update-ctx x* ctx*) -> e2])
      `(fun ,(fun-bruijn (rest t*)) ,e1* ... ,e2)]
+    [(funF ,x ([,x* ,t*] ...) ,t ,[Expr : body* (update-ctx x* ctx*) -> e1*] ... ,[Expr : body (update-ctx x* ctx*) -> e2])
+     `(funF ,x ,(fun-bruijn (rest t*)) ,e1* ... ,e2)]
      ;(fun-bruijn (length x*) t e1* e2)]
     ))
 
 ; Tests Ej 4
-; fun ([x:Int]:Int) => x
 (update-ctx (list 'x 'y) null)
 (trace rename-var)
 (rename-var
  (parse-LF
-  '(fun ((z Int))
-        Int
-        (fun ((y Int)) Int
-             y
-             (fun ((x Int)) Int x))
-        (fun ((x Int)) Int z x))))
+  '(funF f ((z Int))
+           Int
+           (fun ((y Int)) Int
+                (fun ((u Int) (v Int) (w Int)) Int z y u v w)
+                (fun ((x Int)) Int x))
+           (fun ((x Int)) Int z x))))
 
 ; A function that make explicit the ocurrences of the begin
 (define-pass make-explicit : LF (ir) -> LF ()
