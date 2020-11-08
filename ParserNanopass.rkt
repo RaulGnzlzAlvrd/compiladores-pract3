@@ -116,13 +116,34 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
           (format-varname (cdr (first ctx)))
           (get-varname x (rest ctx)))))
 
-(define temp (cons (cons 'x 10) null))
+(define (bump-ctx ctx)
+  (if (empty? ctx)
+      null
+      (cons (cons (car (first ctx)) (+ 1 (cdr (first ctx)))) (bump-ctx (rest ctx)))))
+
+(define (merge-ctx old-ctx new-var)
+  (if (empty? old-ctx )
+      (cons new-var null)
+      (if (equal? (car new-var) (car (first old-ctx)))
+          (cons new-var (rest old-ctx))
+          (cons (first old-ctx) (merge-ctx (rest old-ctx) new-var)))))
+  
+(define (update-ctx vars old-ctx)
+  (if (empty? vars)
+      old-ctx
+      (update-ctx (rest vars) (bump-ctx (merge-ctx old-ctx (cons (first vars) 0))))))
+
+(define (renames vars ctx)
+  (if (empty? vars)
+      null
+      (cons (get-varname (first vars) ctx) (renames (rest vars) ctx))))
+
 ; Ej 4
 (define-pass rename-var : LF (ir) -> LF ()
   (Expr : Expr (ir [ctx* null]) -> Expr ()
     [,x (get-varname x ctx*)]
-    [(fun ([,x* ,t*] ...) ,t ,[Expr : body* temp -> e1] ... ,[Expr : body temp -> e2])
-     `(fun ([,x* ,t*] ...) ,t ,e1 ... ,e2)]
+    [(fun ([,x* ,t*] ...) ,t ,[Expr : body* (update-ctx x* ctx*) -> e1*] ... ,[Expr : body (update-ctx x* ctx*) -> e2])
+     `(fun ([,(renames x* (update-ctx x* ctx*)) ,t*] ...) ,t ,e1* ... ,e2)]
     ))
         ; let (x*:t* <- e*) in body* body end -- body* es lista (posiblemente vacia) de expresiones
         ;[(let ([,x* ,t* ,[e*]] ...) ,[body*] ... ,[body])
@@ -130,12 +151,15 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
 
 ; Tests Ej 4
 ; fun ([x:Int]:Int) => x
+(update-ctx (list 'x 'y) null)
 (trace rename-var)
 (rename-var
  (parse-LF
   '(fun ((z Int))
         Int
-        (fun ((y Int) (x Int)) Int (x))
+        (fun ((y Int)) Int
+             y
+             (fun ((x Int)) Int x))
         (fun ((x Int)) Int z x))))
 
 ; A function that make explicit the ocurrences of the begin
