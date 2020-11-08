@@ -41,7 +41,8 @@ Lexer y parser
 (define-struct begin-exp (exp) #:transparent)
 
 ;; if-then-else
-(define-struct if-then-exp (g e1 e2) #:transparent) ; For the if conditionals.
+(define-struct if-then-else-exp (g e1 e2) #:transparent) ; For the if-then-else two branch conditionals.
+(define-struct if-then-exp (g e) #:transparent) ; For the if-then one branch conditionals.
 
 ;; Tipos
 (define-struct int-exp () #:transparent)       ; For the Int type.
@@ -102,7 +103,8 @@ Lexer y parser
      [(exp OR exp) (make-prim-exp 'or $1 $3)]
 
      ;; If then else expression
-     [(IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-exp $3 $7 $11)]
+     [(IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-else-exp $3 $7 $11)]
+     [(IF LP exp RP THEN LK exp RK) (if-then-exp $3 $7)]
 
      ;; Types
      [(INT) (int-exp)]
