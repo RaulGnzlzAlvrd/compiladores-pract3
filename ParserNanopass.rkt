@@ -35,14 +35,33 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
 ; Calling the script of "Practica 2 - Parte 2"
 (require "parser.rkt")
 
+; Ej 2
 ; Function that returns the string representation of a ASA
 (define (expr->string e)
   (match e
+    ; Basic
     [(var-exp e) (symbol->string e)]
     [(num-exp e) (number->string e)]
     [(bool-exp e) (format "~a" e)]
 
+    ; Containers
+    [(par-exp e) (string-append "(" (expr->string e) ")")]
+    [(brack-exp e) (string-append "[" (expr->string e) "]")]
+    [(app-t-exp e1 e2) (string-append "[" (expr->string e1) "][" (expr->string e2) "]")]
+
+    ; Operations
     [(prim-exp + e1 e2) (string-append "(+ " (expr->string e1) " " (expr->string e2) ")")]
+
+    ; Types
+    [(int-exp) "Int"]
+    [(typeof-exp v e) (string-append (expr->string v) ":" (expr->string e))]
+
+    ; Func and lets
+    [(let-exp x body) (string-append "let (" (expr->string x) ") in " (expr->string body) " end")]
+    [(fun-exp sign body) (string-append "fun (" (expr->string sign) ") => " (expr->string body))]
+    [(fun-f-exp f sign body) (string-append "funF (" (expr->string f) " " (expr->string sign) ") => "
+                                          (expr->string body))]
+
 
     ))
 
@@ -77,12 +96,47 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
 (define (constant? x)
   (or (number? x) (boolean? x)))
 
-(define (pr? x) (#t))
+(define (primitive? op)
+  (memq op '(+ - * / and or)))
 
 ; The parser of LF
 (define-parser parse-LF LF)
 
+; debug
+(require racket/trace)
+(define (juasjuas x) (cons 'y null))
 
+(define (format-varname n)
+  (string->symbol (string-append "x" (number->string n))))
+
+(define (get-varname x ctx)
+  (if (empty? ctx)
+      'x0
+      (if (equal? x (car (first ctx)))
+          (format-varname (cdr (first ctx)))
+          (get-varname x (rest ctx)))))
+
+(define temp (cons (cons 'x 10) null))
+; Ej 4
+(define-pass rename-var : LF (ir) -> LF ()
+  (Expr : Expr (ir [ctx* null]) -> Expr ()
+    [,x (get-varname x ctx*)]
+    [(fun ([,x* ,t*] ...) ,t ,[Expr : body* temp -> e1] ... ,[Expr : body temp -> e2])
+     `(fun ([,x* ,t*] ...) ,t ,e1 ... ,e2)]
+    ))
+        ; let (x*:t* <- e*) in body* body end -- body* es lista (posiblemente vacia) de expresiones
+        ;[(let ([,x* ,t* ,[e*]] ...) ,[body*] ... ,[body])
+          ; `(let ([,(print x*) ,t* ,e*] ...) ,body* ... ,body)]))
+
+; Tests Ej 4
+; fun ([x:Int]:Int) => x
+(trace rename-var)
+(rename-var
+ (parse-LF
+  '(fun ((z Int))
+        Int
+        (fun ((y Int) (x Int)) Int (x))
+        (fun ((x Int)) Int z x))))
 
 ; A function that make explicit the ocurrences of the begin
 (define-pass make-explicit : LF (ir) -> LF ()
@@ -107,7 +161,6 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     [,c `',c]
     [(if ,[e0] ,[e1])
      `(if ,e0 ,e1 (void))]))
-
 
 
 ; Concrete expression;
