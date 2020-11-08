@@ -102,13 +102,15 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
 ; The parser of LF
 (define-parser parse-LF LF)
 
-; debug
-(require racket/trace)
-(define (juasjuas x) (cons 'y null))
+; Inicia ejercicio 4
 
+;; aux. dado numero n, regresa 'xn
 (define (format-varname n)
   (string->symbol (string-append "x" (number->string n))))
 
+;; ctx = [(var1, idx1), ..., (varn, idxn)]
+;; aux. dado un contexto `ctx` y un simbolo `x`, regresa el simbolo 'xidxi si existe `i` tal que
+;; `vari = x`, si no existe regresa el simbolo 'x0 (si x es variable libre)
 (define (get-varname x ctx)
   (if (empty? ctx)
       'x0
@@ -116,28 +118,46 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
           (format-varname (cdr (first ctx)))
           (get-varname x (rest ctx)))))
 
+;; ctx = [(var1, idx1), ..., (varn, idxn)]
+;; aux. regresa el mismo contexto con los indices aumentados por uno, es decir, regresa
+;; [(var1, idx1+1), ..., (varn, idxn+1)]. esta funcion es para actualizar el contexto cuando se
+;; encuentra una funcion las variables "aumentan en profundidad"
 (define (bump-ctx ctx)
   (if (empty? ctx)
       null
       (cons (cons (car (first ctx)) (+ 1 (cdr (first ctx)))) (bump-ctx (rest ctx)))))
 
+;; old-ctx = [(var1, idx1), ..., (varn, idxn)]
+;; new-var = (var, idx)
+;; aux. regresa el contexto `old-ctx` pero agerando la nueva variable. en caso de que la variable
+;; `var` ya exista en old-ctx, se actualizara el indice a `idx` para que nuevas ocurrencias de `var`
+;; esten asociadas a la funcion que la declara mas reciente
 (define (merge-ctx old-ctx new-var)
   (if (empty? old-ctx )
       (cons new-var null)
       (if (equal? (car new-var) (car (first old-ctx)))
           (cons new-var (rest old-ctx))
           (cons (first old-ctx) (merge-ctx (rest old-ctx) new-var)))))
-  
+
+;; old-ctx = [(var1, idx1), ..., (varn, idxn)];;
+;; vars = [x1, ..., xm]
+;; aux. regresa un nuevo contexto aumentando las variables en `vars`, en donde `x1` se agregara
+;; perimero al contexto, es decir, se considerara mas atras que `x2`...`xm` para ocurrencias
+;; de las variables mas adelante
 (define (update-ctx vars old-ctx)
   (if (empty? vars)
       old-ctx
       (update-ctx (rest vars) (bump-ctx (merge-ctx old-ctx (cons (first vars) 0))))))
 
+;; aux. regresa las variables en `vars` renombradas segun el contexto `ctx`
 (define (renames vars ctx)
   (if (empty? vars)
       null
       (cons (get-varname (first vars) ctx) (renames (rest vars) ctx))))
 
+;; nuevo lenguaje para indices de bruijn en donde se quitan los parametros de las variables en
+;; las funciones, sus tipos y los tipos que regresan, de este modo se puede implementar los indices
+;; de bruijn de manera estandar
 (define-language LBruijn
   (extends LF)
   (Expr (e body)
@@ -146,8 +166,10 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
         (- (fun ((x* t*) ...) t body* ... body))
         (- (funF x ((x* t*) ...) t body* ... body))))
 
+;; parser bruijn
 (define-parser parse-bruijn LBruijn)
 
+;; regresa el simbolo 'fun tantas veces como `types` lo indica
 (define (fun-bruijn types)
   (if (<= (length types) 1)
       'fun
@@ -167,16 +189,14 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     ))
 
 ; Tests Ej 4
-(update-ctx (list 'x 'y) null)
-(trace rename-var)
-(rename-var
- (parse-LF
-  '(funF f ((z Int))
-           Int
-           (fun ((y Int)) Int
-                (fun ((u Int) (v Int) (w Int)) Int z y u v w)
-                (fun ((x Int)) Int x))
-           (fun ((x Int)) Int z x))))
+;(rename-var
+; (parse-LF
+;  '(funF f ((z Int))
+;           Int
+;           (fun ((y Int)) Int
+;                (fun ((u Int) (v Int) (w Int)) Int z y u v w)
+;                (fun ((x Int)) Int x))
+;           (fun ((x Int)) Int z x))))
 
 ; A function that make explicit the ocurrences of the begin
 (define-pass make-explicit : LF (ir) -> LF ()
