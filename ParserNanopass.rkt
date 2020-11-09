@@ -30,7 +30,10 @@ Our first approach with nanopass.
     [(equal? prim 'and) "and"]
     [(equal? prim 'or) "or"]))
 
-; Ej 2
+;
+; START Ejercicio 2
+;
+
 ; Function that returns the string representation of a ASA
 (define (expr->string e)
   (match e
@@ -80,6 +83,9 @@ Our first approach with nanopass.
 
     ; Function application
     [(app-exp e1 e2) (string-append "("(expr->string e1) " " (expr->string e2) ")")]))
+;
+; END Ejercicio 2
+;
 
 ; The definition of our language
 (define-language LF
@@ -103,7 +109,10 @@ Our first approach with nanopass.
     (e0 e1 ...)
     ))
 
-;Some predicates
+;
+; START Ejercicio 3
+;
+; Some predicates
 (define (variable? x) (symbol? x))
 
 (define (type? t)
@@ -113,13 +122,17 @@ Our first approach with nanopass.
   (or (number? x) (boolean? x)))
 
 (define (primitive? op)
-  (memq op '(+ - * / and or)))
+  (memq op (list + - * / 'and 'or)))
+;
+; END Ejercicio 3
+;
 
 ; The parser of LF
 (define-parser parse-LF LF)
 
-; Inicia ejercicio 4
-
+;
+; START Ejercicio 4
+;
 ;; aux. dado numero n, regresa 'xn
 (define (format-varname n)
   (string->symbol (string-append "x" (number->string n))))
@@ -203,16 +216,9 @@ Our first approach with nanopass.
      `(funF ,x ,(fun-bruijn (rest t*)) ,e1* ... ,e2)]
      ;(fun-bruijn (length x*) t e1* e2)]
     ))
-
-; Tests Ej 4
-;(rename-var
-; (parse-LF
-;  '(funF f ((z Int))
-;           Int
-;           (fun ((y Int)) Int
-;                (fun ((u Int) (v Int) (w Int)) Int z y u v w)
-;                (fun ((x Int)) Int x))
-;           (fun ((x Int)) Int z x))))
+;
+; END Ejercicio 4
+;
 
 ; A function that make explicit the ocurrences of the begin
 (define-pass make-explicit : LF (ir) -> LF ()
@@ -225,15 +231,62 @@ Our first approach with nanopass.
     [(funF ,x ([,x* ,t*] ...) ,t ,[body*] ... ,[body])
      `(funF x ([,x* ,t*] ...) t (begin ,body* ... ,body))]))
 
+;
+; START Ejercicio 5
+;
+; Define a new language without if single branch
 (define-language LNI
   (extends LF)
   (Expr (e body)
         (- (if e0 e1))))
 
+; Parser LNI 
 (define-parser parse-LNI LNI)
 
+; Remove single branch if amd convert them into two branch if
 (define-pass rm-armed-if : LF (ir) -> LNI ()
   (Expr : Expr (ir) -> Expr ()
     [,c `',c]
     [(if ,[e0] ,[e1])
      `(if ,e0 ,e1 (void))]))
+;
+; END Ejercicio 5
+;
+
+;
+; START Ejercicio 6
+;
+
+;; Define an extension for LF with characters, strings and lists.
+(define-language LF-CSL
+  (extends LF)
+  (terminals
+   (- (constant (c))
+      (primitive (pr)))
+   (+ (csl-constant (csl-c))
+      (csl-primitive (csl-pr))))
+  (Expr (e body)
+        (- c
+           pr
+           (pr e* ... e))
+        (+ csl-c
+           csl-pr
+           (csl-pr e* ... e))))
+
+; Predicates for LF-CSL
+(define (csl-constant? c)
+  (or (string? c) (char? c) (list? c) (number? c) (boolean? c)))
+
+(define (csl-primitive? op)
+  (memq op (list + - * / 'and 'or 'list)))
+
+; The parser of LF-CSL
+(define-parser parse-LF-CSL LF-CSL)
+
+;; Removes strings from LF-CSL and converts them in list of chars
+(define-pass remove-string : LF-CSL (ir) -> LF-CSL ()
+  (Expr : Expr (ir) -> Expr ()
+        [,csl-c (if (string? csl-c) `,(append '(list) (string->list csl-c)) csl-c)]))
+;
+; END Ejercicio 6
+;
