@@ -22,9 +22,10 @@ Lexer y parser
 ;; Tokens que no almacenan datos
 (define-empty-tokens b (+ - * / AND OR          ;; prim
                           LP RP LB RB LK RK     ;; parentesis (P), square brackets [B] y brackets {K}
+                          BEGIN
                           APPT                  ;; Multiple parameters on functions/let
                           IF THEN ELSE          ;; condicional
-                          BOOLE INT FUNC        ;; Types 
+                          BOOLE INT             ;; Types 
                           FUN FUNF TYPEOF ARROW ;; Funciones                 
                           LET ASSIGN IN END     ;; Let
                           APP                   ;; Aplicacion de funcion
@@ -85,9 +86,6 @@ Lexer y parser
    [(:: #\I #\n #\t)
     ; =>
     (token-INT)]
-   [(:: #\F #\u #\n #\c)
-    ; =>
-    (token-FUNC)]
    ;; TERMINA relacionado a tipos
 
 
@@ -168,6 +166,12 @@ Lexer y parser
     ;=>
     (token-RB)]
    ;; TERMINA parentesis y brackets
+
+   ;; EMPIEZA begin
+   [(:: #\b #\e #\g #\i #\n)
+    ;=>
+    (token-BEGIN)]
+   ;; TERMINA begin
 
 
    ;; Casos especiales

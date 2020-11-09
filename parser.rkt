@@ -37,8 +37,12 @@ Lexer y parser
 (define-struct app-t-exp (e1 e2) #:transparent) ; For multiple arguments ][
 ;; Ej: fun ([x:Int][y:Int]:Int) => x+y
 
+;; Begin
+(define-struct begin-exp (exp) #:transparent)
+
 ;; if-then-else
-(define-struct if-then-exp (g e1 e2) #:transparent) ; For the if conditionals.
+(define-struct if-then-else-exp (g e1 e2) #:transparent) ; For the if-then-else two branch conditionals.
+(define-struct if-then-exp (g e) #:transparent) ; For the if-then one branch conditionals.
 
 ;; Tipos
 (define-struct int-exp () #:transparent)       ; For the Int type.
@@ -99,12 +103,12 @@ Lexer y parser
      [(exp OR exp) (make-prim-exp 'or $1 $3)]
 
      ;; If then else expression
-     [(IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-exp $3 $7 $11)]
+     [(IF LP exp RP THEN LK exp RK ELSE LK exp RK) (if-then-else-exp $3 $7 $11)]
+     [(IF LP exp RP THEN LK exp RK) (if-then-exp $3 $7)]
 
      ;; Types
      [(INT) (int-exp)]
      [(BOOLE) (boole-exp)]
-     [(FUNC exp exp) (make-func-exp $2 $3)]
      [(exp TYPEOF exp) (make-typeof-exp $1 $3)]
      [(LP exp RP TYPEOF exp) (make-typeof-exp $2 $5)]
 
@@ -113,6 +117,9 @@ Lexer y parser
      [(LB exp RB) (make-brack-exp $2)]
      [(exp ASSIGN exp) (make-assign-exp $1 $3)]
      [(exp APPT exp) (make-app-t-exp $1 $3)]
+
+     ;; Begin
+     [(BEGIN LK exp RK) (make-begin-exp $3)]
 
      ;; Functions
      [(FUN LP exp RP ARROW exp) (make-fun-exp $3 $6)]
