@@ -9,28 +9,11 @@ Laboratorio: Fernando Abigail Galicia Mendoza
 Our first approach with nanopass.
 |#
 
-
-#|
-¿Podrías explicar la sintaxis de las metavariables para define-language e0, e1, e*, y puntos ...?
-x|
-
-¿Cómo se elimina una producción al extender un lenguaje?
-O en otras palabras ¿que iría en los ... de (-production-clause ...)?
-
-¿Que son los formals en define-pass?
-
-¿Podrías explicar la sintáxis que se usa en define-pass?
-¿Por qué  las comas ,? Ej: ( funF ,x ([ , x * ,t *] ...) antes de la x y t
-
-¿Las transformaciones definidas en los passes las ocupa el parser o en qué momento las vamos a utilizar? 
-
-|#
-
-
 (require parser-tools/lex
          (prefix-in : parser-tools/lex-sre)
          (prefix-in re- parser-tools/lex-sre)
          parser-tools/yacc)
+(provide (all-defined-out))
 
 ; Calling the script of "Practica 2 - Parte 2"
 (require "parser.rkt"
@@ -57,16 +40,18 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     [(bool-exp e) (format "~a" e)]
 
     ; Casos especiales
-    [(typeof-exp (brack-exp e1) e2) (string-append "(" (expr->string (brack-exp e1)) ") " (expr->string e2))]
+    [(typeof-exp (brack-exp e1) e2) (string-append "(" (expr->string e1) ") " (expr->string e2))]
     [(par-exp (prim-exp p e1 e2)) (expr->string (prim-exp p e1 e2))]
     [(brack-exp (app-t-exp e1 e2)) (expr->string (app-t-exp e1 e2))]
     [(app-t-exp (app-t-exp es1 es2) e2)
-     (string-append "[" (expr->string (brack-exp es1)) "] [" (expr->string es2) "] " (expr->string (brack-exp e2)))]
+     (string-append (expr->string es1) " " (expr->string es2) " " (expr->string e2))]
+    [(assign-exp (typeof-exp v e) e2)
+     (string-append "[" (expr->string v) " " (expr->string e) " = " (expr->string e2) "]")]
     
     ; Containers
     [(par-exp e) (string-append "(" (expr->string e) ")")]
     [(brack-exp e) (string-append "[" (expr->string e) "]")]
-    [(app-t-exp e1 e2) (string-append "[" (expr->string e1) "] [" (expr->string e2) "]")]
+    [(app-t-exp e1 e2) (string-append (expr->string e1) " " (expr->string e2))]
 
     ; Operations
     [(prim-exp pr e1 e2) (string-append "(" (select-prim pr) " " (expr->string e1) " " (expr->string e2) ")")]
@@ -74,7 +59,7 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     ; Types
     [(int-exp) "Int"]
     [(boole-exp) "Bool"]
-    [(typeof-exp v e) (string-append (expr->string v) " " (expr->string e))]
+    [(typeof-exp v e) (string-append "[" (expr->string v) " " (expr->string e) "]")]
 
     ; Let
     [(let-exp x body) (string-append "(let (" (expr->string x) ") " (expr->string body) ")")]
@@ -252,67 +237,3 @@ O en otras palabras ¿que iría en los ... de (-production-clause ...)?
     [,c `',c]
     [(if ,[e0] ,[e1])
      `(if ,e0 ,e1 (void))]))
-
-
-; Concrete expression;
-; (33 + 2)
-(expr->string (par-exp (prim-exp + (num-exp 33) (num-exp 2))))
-; Answer: "(+ 33 2)"
-
-; Concrete expression
-; 3 - (3 / 6)
-(expr->string (prim-exp - (num-exp 3) 
-    (par-exp (prim-exp - (num-exp 3) (num-exp 6)))))
-; Answer "(- 3 (/ 3 6))"
-
-; Concrete expression:
-; if(#t and #f)then{2}else{3}
-(expr->string (if-then-else-exp (prim-exp 'and (bool-exp #t) (bool-exp #f))
-    (num-exp 2) (num-exp 3)))
-; Answer: "(if (and #t #f) 2 3)"
-
-; Concrete expression:
-; fun ([x:Int]:Int) => x
-(expr->string (fun-exp (typeof-exp (brack-exp (typeof-exp (var-exp 'x)
-    (int-exp))) (int-exp)) (var-exp 'x)))
-; Answer: "(fun ((x Int)) Int x)"
-
-; Concrete expression:
-; fun ([x:Int][y:Int]:Int) => x*y
-(expr->string (fun-exp
- (typeof-exp (brack-exp (app-t-exp 
-    (typeof-exp (var-exp 'x) 
-        (int-exp)) (typeof-exp (var-exp 'y) (int-exp)))) (int-exp))
- (prim-exp * (var-exp 'x) (var-exp 'y))))
-; Answer: (fun ((x Int) (y Int)) Int (* x y))"
-
-; Concrete expression:
-; fun ([x:Int][y:Int][z:Int]:Int) => x*y
-(expr->string (fun-exp
- (typeof-exp
-  (brack-exp
-   (app-t-exp
-    (app-t-exp
-     (app-t-exp
-      (typeof-exp (var-exp 'x) (int-exp))
-      (typeof-exp (var-exp 'y) (int-exp)))
-     (typeof-exp (var-exp 'z) (int-exp)))
-    (typeof-exp (var-exp 'a) (int-exp))))
-  (int-exp))
- (prim-exp + (var-exp 'x) (var-exp 'y))))
-; Answer: (fun ((x Int) (y Int) (z Int)) Int (* x y))"
-
-(let ((input (open-input-string "fun ([x:Int][y:Int][z:Int][a:Int]:Int) => x*y")))
-  (minHS-parser (lex-this minHS-lexer input)))
-
-; Concrete expression:
-; funF (sumita ([x:Int][y:Int]):Int) => x+y
-(expr->string (let ((input (open-input-string "funF (sumita ([x:Int][y:Int]):Int) => x+y")))
-  (minHS-parser (lex-this minHS-lexer input))))
-; Answer: "(funF sumita ((x Int) (y Int)) Int (+ x y))"
-
-; Concrete expression:
-; let ([x:Int = 1][y:Int = 2][3:Int = 3]) in x+y*z end
-(expr->string (let ((input (open-input-string "let ([x:Int = 1][y:Int = 2][3:Int = 3]) in x+y*z end")))
-  (minHS-parser (lex-this minHS-lexer input))))
-; Answer: "(funF sumita ((x Int) (y Int)) Int (+ x y))"
